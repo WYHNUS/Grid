@@ -1,4 +1,5 @@
 #include "HelloWorldScene.h"
+#include "iostream"
 
 USING_NS_CC;
 
@@ -42,7 +43,15 @@ bool HelloWorld::init()
     
     // create a TMX map
     map = TMXTiledMap::create("res/background.tmx");
-    addChild(map, 0);
+    // hard-coded scale factor to enable retina display (can be deleted if the pictures are for retina devices)
+    map->setScale(retinaFactor);
+    
+    background = map->getLayer("BackgroundLayer");
+    foreground = map->getLayer("Foreground");
+    blockMap = map->getLayer("BlockLayer");
+    blockMap->setVisible(false);
+    this->addChild(map, 0);
+    
     // all tiles are aliased by default, let's set them anti-aliased
     for (const auto& child : map->getChildren())
     {
@@ -54,9 +63,10 @@ bool HelloWorld::init()
     auto playerSpawnPoint = objectGroup->getObject("SpawnPoint");
     CCASSERT(!playerSpawnPoint.empty(), "'SpawnPoint' object not found");
     
-    int x = playerSpawnPoint["x"].asInt();
-    int y = playerSpawnPoint["y"].asInt();
+    int x = playerSpawnPoint["x"].asInt() * retinaFactor;
+    int y = playerSpawnPoint["y"].asInt() * retinaFactor - 5;   // hard-coded to fix display
     player = Sprite::create("res/Player.png");
+    player->setScale(retinaFactor, retinaFactor);
     player->setPosition(x, y);
     addChild(player);
     setViewPointCenter(player->getPosition());
@@ -80,33 +90,54 @@ void HelloWorld::onTouchEnded(Touch* touch, Event* event)
     
     if (std::abs(posDiff.x) > std::abs(posDiff.y)) {
         if (posDiff.x > 0) {
-            playerPos.x += map->getTileSize().width / 2;
+            playerPos.x += map->getTileSize().width;
         }
         else {
-            playerPos.x -= map->getTileSize().width / 2;
+            playerPos.x -= map->getTileSize().width;
         }
     } else {
         if (posDiff.y > 0) {
-            playerPos.y += map->getTileSize().height / 2;
+            playerPos.y += map->getTileSize().height;
         }
         else {
-            playerPos.y -= map->getTileSize().height / 2;
+            playerPos.y -= map->getTileSize().height;
         }
     }
     
     // check if player within range of the map
-    if (playerPos.x <= (map->getMapSize().width * map->getMapSize().width) &&
-        playerPos.y <= (map->getMapSize().height * map->getMapSize().height) &&
+    if (playerPos.x <= (map->getMapSize().width * map->getTileSize().width) &&
+        playerPos.y <= (map->getMapSize().height * map->getTileSize().height) &&
         playerPos.y >= 0 && playerPos.x >= 0)
     {
         this->setPlayerPosition(playerPos);
     }
+    std::cout<<playerPos.x << "  " << playerPos.y << "\n";
     
     this->setViewPointCenter(player->getPosition());
 }
 
+cocos2d::Point HelloWorld::tileCoordForPosition(cocos2d::Point position)
+{
+    int x = position.x / map->getTileSize().width;
+    int y = ((map->getMapSize().height * map->getTileSize().height) - position.y) / map->getTileSize().height;
+    return Point(x, y);
+}
+
 void HelloWorld::setPlayerPosition(cocos2d::Point position)
 {
+    cocos2d::Point tileCoord = this->tileCoordForPosition(position);
+    int tileGrid = blockMap->getTileGIDAt(tileCoord);
+    if (tileGrid) {
+        auto property = map->getPropertiesForGID(tileGrid).asValueMap();
+        if (!property.empty()) {
+            if (property["Blockage"].asString() == "True") {
+                return;
+            } else if (property["Collectable"].asString() == "True") {
+                blockMap->removeTileAt(tileCoord);
+                foreground->removeTileAt(tileCoord);
+            }
+        }
+    }
     player->setPosition(position.x, position.y);
 }
 

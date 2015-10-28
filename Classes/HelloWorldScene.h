@@ -6,8 +6,16 @@
 class HelloWorld : public cocos2d::Layer
 {
 private:
+    // hard-coded scale factor to enable retina display (can be deleted if the pictures are for retina devices)
+    float retinaFactor = 2.13;
+    
     cocos2d::TMXTiledMap* map;
+    cocos2d::TMXLayer* background;
+    cocos2d::TMXLayer* foreground;
+    cocos2d::TMXLayer* blockMap;
     cocos2d::Sprite* player;
+    
+    cocos2d::Point tileCoordForPosition(cocos2d::Point position);
 public:
     static cocos2d::Scene* createScene();
 
