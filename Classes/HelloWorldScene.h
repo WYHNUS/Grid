@@ -3,6 +3,16 @@
 
 #include "cocos2d.h"
 
+class HudLayer: public cocos2d::Layer
+{
+public:
+    void numCollectedChanged(int numCollected);
+    virtual bool init();
+    CREATE_FUNC(HudLayer);
+    
+    cocos2d::Label* scoreLabel;
+};
+
 class HelloWorld : public cocos2d::Layer
 {
 private:
@@ -14,6 +24,9 @@ private:
     cocos2d::TMXLayer* foreground;
     cocos2d::TMXLayer* blockMap;
     cocos2d::Sprite* player;
+    
+    int numCollected;
+    static HudLayer* hud;
     
     cocos2d::Point tileCoordForPosition(cocos2d::Point position);
 public:

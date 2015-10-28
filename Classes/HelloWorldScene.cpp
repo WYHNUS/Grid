@@ -3,6 +3,33 @@
 
 USING_NS_CC;
 
+HudLayer *HelloWorld::hud = NULL;
+
+bool HudLayer::init()
+{
+    if (!Layer::init())
+    {
+        return false;
+    }
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    scoreLabel = Label::createWithTTF("Score: 0", "fonts/Marker Felt.ttf", 18.0f, Size(150, 20),
+                                      TextHAlignment::RIGHT, TextVAlignment::BOTTOM);
+    scoreLabel->setColor(Color3B(255, 255, 255));
+    int margin = 10;
+    scoreLabel->setPosition(visibleSize.width - (scoreLabel->getDimensions().width / 2) - margin,
+                       scoreLabel->getDimensions().height / 2 + margin);
+    this->addChild(scoreLabel);
+    
+    return true;
+}
+
+void HudLayer::numCollectedChanged(int numCollected)
+{
+    char showStr[20];
+    sprintf(showStr, "Score: %d", numCollected);
+    scoreLabel->setString(showStr);
+}
+
 Scene* HelloWorld::createScene()
 {
     // 'scene' is an autorelease object
@@ -10,9 +37,10 @@ Scene* HelloWorld::createScene()
     
     // 'layer' is an autorelease object
     auto layer = HelloWorld::create();
-
-    // add layer as a child to scene
     scene->addChild(layer);
+    
+    hud = HudLayer::create();
+    scene->addChild(hud);
 
     // return the scene
     return scene;
@@ -111,7 +139,6 @@ void HelloWorld::onTouchEnded(Touch* touch, Event* event)
     {
         this->setPlayerPosition(playerPos);
     }
-    std::cout<<playerPos.x << "  " << playerPos.y << "\n";
     
     this->setViewPointCenter(player->getPosition());
 }
@@ -135,6 +162,8 @@ void HelloWorld::setPlayerPosition(cocos2d::Point position)
             } else if (property["Collectable"].asString() == "True") {
                 blockMap->removeTileAt(tileCoord);
                 foreground->removeTileAt(tileCoord);
+                this->numCollected++;
+                this->hud->HudLayer::numCollectedChanged(numCollected);
             }
         }
     }
