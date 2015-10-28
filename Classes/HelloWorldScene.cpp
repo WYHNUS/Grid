@@ -1,4 +1,5 @@
 #include "HelloWorldScene.h"
+#include <SimpleAudioEngine.h>
 #include "iostream"
 
 USING_NS_CC;
@@ -68,6 +69,13 @@ bool HelloWorld::init()
     auto menu = Menu::create(closeItem, NULL);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu, 1);
+    
+    // load sound effect
+    CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect("res/hit.caf");
+    CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect("res/move.caf");
+    CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect("res/pickup.caf");
+    CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("res/background.caf", true);
+    CocosDenshion::SimpleAudioEngine::getInstance()->setBackgroundMusicVolume(0.2);
     
     // create a TMX map
     map = TMXTiledMap::create("res/background.tmx");
@@ -158,15 +166,20 @@ void HelloWorld::setPlayerPosition(cocos2d::Point position)
         auto property = map->getPropertiesForGID(tileGrid).asValueMap();
         if (!property.empty()) {
             if (property["Blockage"].asString() == "True") {
+                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("res/hit.caf");
                 return;
             } else if (property["Collectable"].asString() == "True") {
                 blockMap->removeTileAt(tileCoord);
                 foreground->removeTileAt(tileCoord);
                 this->numCollected++;
                 this->hud->HudLayer::numCollectedChanged(numCollected);
+                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("res/pickup.caf");
+                player->setPosition(position.x, position.y);
+                return;
             }
         }
     }
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("res/move.caf");
     player->setPosition(position.x, position.y);
 }
 
