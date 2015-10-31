@@ -21,7 +21,26 @@ bool HudLayer::init()
                        scoreLabel->getDimensions().height / 2 + margin);
     this->addChild(scoreLabel);
     
+    // add a "close" icon to exit the progress. it's an autorelease object
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    auto closeItem = MenuItemImage::create("CloseNormal.png",
+                                           "CloseSelected.png",
+                                           CC_CALLBACK_1(HudLayer::menuCloseCallback, this));
+    closeItem->setPosition(Vec2(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
+                                origin.y + closeItem->getContentSize().height/2));
+    auto menu = Menu::create(closeItem, NULL);
+    menu->setPosition(Vec2::ZERO);
+    this->addChild(menu, 1);
     return true;
+}
+
+void HudLayer::menuCloseCallback(Ref* pSender)
+{
+    Director::getInstance()->end();
+    
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+    exit(0);
+#endif
 }
 
 void HudLayer::numCollectedChanged(int numCollected)
@@ -54,21 +73,6 @@ bool HelloWorld::init()
     {
         return false;
     }
-    
-    Size visibleSize = Director::getInstance()->getVisibleSize();
-    Vec2 origin = Director::getInstance()->getVisibleOrigin();
-
-    // add a "close" icon to exit the progress. it's an autorelease object
-    auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
-	closeItem->setPosition(Vec2(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
-                                origin.y + closeItem->getContentSize().height/2));
-    
-    auto menu = Menu::create(closeItem, NULL);
-    menu->setPosition(Vec2::ZERO);
-    this->addChild(menu, 1);
     
     // load sound effect
     CocosDenshion::SimpleAudioEngine::getInstance()->preloadEffect("res/hit.caf");
@@ -140,12 +144,16 @@ void HelloWorld::addEnemyAtPos(int monsterIndex, cocos2d::Point pos)
 
 void HelloWorld::animateEnemy(cocos2d::Sprite *enemy)
 {
-    float actualDuration = 0.3f;
+    float actualDuration = 0.8f;
     Vec2 diff;
     Vec2::subtract(player->getPosition(), enemy->getPosition(), &diff);
     diff.normalize();
-    auto position = diff*10;
-    auto actionMove = MoveBy::create(actualDuration, position);
+    auto position = diff * (map->getTileSize().width / 2);
+    MoveBy* actionMove;
+    if (!canMove(enemy->getPosition() + position))
+        actionMove = MoveBy::create(actualDuration, Vec2());
+    else
+        actionMove = MoveBy::create(actualDuration, position);
     auto actionMoveDone = cocos2d::CallFuncN::create(CC_CALLBACK_1(HelloWorld::enemyMoveFinished, this));
     enemy->runAction(Sequence::create(actionMove, actionMoveDone, NULL));
 }
@@ -198,6 +206,21 @@ cocos2d::Point HelloWorld::tileCoordForPosition(cocos2d::Point position)
     return Point(x, y);
 }
 
+bool HelloWorld::canMove(Point position)
+{
+    cocos2d::Point tileCoord = this->tileCoordForPosition(position);
+    int tileGrid = blockMap->getTileGIDAt(tileCoord);
+    if (tileGrid) {
+        auto property = map->getPropertiesForGID(tileGrid).asValueMap();
+        if (!property.empty()) {
+            if (property["Blockage"].asString() == "True") {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void HelloWorld::setPlayerPosition(cocos2d::Point position)
 {
     cocos2d::Point tileCoord = this->tileCoordForPosition(position);
@@ -220,7 +243,7 @@ void HelloWorld::setPlayerPosition(cocos2d::Point position)
         }
     }
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("res/move.caf");
-    player->setPosition(position.x, position.y);
+    player->setPosition(position);
 }
 
 void HelloWorld::setViewPointCenter(cocos2d::Point position)
@@ -236,13 +259,4 @@ void HelloWorld::setViewPointCenter(cocos2d::Point position)
     auto centerOfView = Point(winSize.width / 2, winSize.height / 2);
     auto viewPoint = centerOfView - actualPosition;
     this->setPosition(viewPoint);
-}
-
-void HelloWorld::menuCloseCallback(Ref* pSender)
-{
-    Director::getInstance()->end();
-
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
-#endif
 }

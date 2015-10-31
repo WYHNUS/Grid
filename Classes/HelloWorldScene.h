@@ -8,6 +8,9 @@ class HudLayer: public cocos2d::Layer
 public:
     void numCollectedChanged(int numCollected);
     virtual bool init();
+    // a selector callback
+    void menuCloseCallback(cocos2d::Ref* pSender);
+    
     CREATE_FUNC(HudLayer);
     
     cocos2d::Label* scoreLabel;
@@ -36,11 +39,7 @@ private:
     
 public:
     static cocos2d::Scene* createScene();
-
     virtual bool init();
-    
-    // a selector callback
-    void menuCloseCallback(cocos2d::Ref* pSender);
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
@@ -49,6 +48,7 @@ public:
     
     void setViewPointCenter(cocos2d::Point position);
     void setPlayerPosition(cocos2d::Point position);
+    bool canMove(cocos2d::Point position);
 };
 
 #endif // __HELLOWORLD_SCENE_H__
