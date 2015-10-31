@@ -96,9 +96,10 @@ bool HelloWorld::init()
     
     TMXObjectGroup* objectGroup = map->getObjectGroup("Object-Players");
     CCASSERT(NULL != objectGroup, "'Object-Players' object group not found");
+    
+    // add player
     auto playerSpawnPoint = objectGroup->getObject("SpawnPoint");
     CCASSERT(!playerSpawnPoint.empty(), "'SpawnPoint' object not found");
-    
     int x = playerSpawnPoint["x"].asInt() * retinaFactor;
     int y = playerSpawnPoint["y"].asInt() * retinaFactor - 5;   // hard-coded to fix display
     player = Sprite::create("res/Player.png");
@@ -107,6 +108,16 @@ bool HelloWorld::init()
     addChild(player);
     setViewPointCenter(player->getPosition());
     
+    // add monsters
+    for (auto& playerPosition: objectGroup->getObjects()){
+        ValueMap& dict = playerPosition.asValueMap();
+        if(dict["EnemyIndex"].asInt() > 0){
+            x = dict["x"].asInt() * retinaFactor;
+            y = dict["y"].asInt() * retinaFactor;
+            this->addEnemyAtPos(dict["EnemyIndex"].asInt(), Point(x, y));
+        }
+    }
+    
     // add listener
     auto listener = EventListenerTouchOneByOne::create();
     listener->onTouchBegan = [&](Touch* touch, Event* event) ->bool {return true;};
@@ -114,6 +125,35 @@ bool HelloWorld::init()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     
     return true;
+}
+
+void HelloWorld::addEnemyAtPos(int monsterIndex, cocos2d::Point pos)
+{
+    auto enemy = Sprite::create("res/monster" + std::to_string(monsterIndex) + ".jpg");
+    enemy->setPosition(pos);
+    enemy->setScale(0.5);
+    this->animateEnemy(enemy);
+    this->addChild(enemy);
+    
+    all_enemies.push_back(enemy);
+}
+
+void HelloWorld::animateEnemy(cocos2d::Sprite *enemy)
+{
+    float actualDuration = 0.3f;
+    Vec2 diff;
+    Vec2::subtract(player->getPosition(), enemy->getPosition(), &diff);
+    diff.normalize();
+    auto position = diff*10;
+    auto actionMove = MoveBy::create(actualDuration, position);
+    auto actionMoveDone = cocos2d::CallFuncN::create(CC_CALLBACK_1(HelloWorld::enemyMoveFinished, this));
+    enemy->runAction(Sequence::create(actionMove, actionMoveDone, NULL));
+}
+
+void HelloWorld::enemyMoveFinished(Ref *pSender)
+{
+    Sprite *enemy = (Sprite *)pSender;
+    this->animateEnemy(enemy);
 }
 
 void HelloWorld::onTouchEnded(Touch* touch, Event* event)

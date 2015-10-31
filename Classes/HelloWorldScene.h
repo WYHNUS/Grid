@@ -24,11 +24,16 @@ private:
     cocos2d::TMXLayer* foreground;
     cocos2d::TMXLayer* blockMap;
     cocos2d::Sprite* player;
+    std::vector<cocos2d::Sprite*> all_enemies;
     
     int numCollected;
     static HudLayer* hud;
     
     cocos2d::Point tileCoordForPosition(cocos2d::Point position);
+    void addEnemyAtPos(int monsterIndex, cocos2d::Point position);
+    void animateEnemy(cocos2d::Sprite* enemy);
+    void enemyMoveFinished(cocos2d::Ref *pSender);
+    
 public:
     static cocos2d::Scene* createScene();
 

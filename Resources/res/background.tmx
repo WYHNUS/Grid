@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" nextobjectid="2">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" nextobjectid="23">
  <tileset firstgid="1" name="tmw_desert_spacing" tilewidth="32" tileheight="32" spacing="1" margin="1" tilecount="48">
   <image source="tmw_desert_spacing.png" width="265" height="199"/>
  </tileset>
@@ -23,6 +23,40 @@
  </layer>
  <objectgroup name="Object-Players">
   <object id="1" name="SpawnPoint" x="109" y="474"/>
+  <object id="2" name="EnemyType01" x="590" y="302"/>
+  <object id="3" name="EnemyType01" x="113" y="115">
+   <properties>
+    <property name="EnemyIndex" value="1"/>
+   </properties>
+  </object>
+  <object id="4" name="EnemyType01" x="146" y="146">
+   <properties>
+    <property name="EnemyIndex" value="1"/>
+   </properties>
+  </object>
+  <object id="5" x="545" y="69"/>
+  <object id="6" x="570" y="69"/>
+  <object id="7" x="570" y="94"/>
+  <object id="8" x="544" y="94"/>
+  <object id="9" name="EnemyType01" x="546" y="517"/>
+  <object id="13" name="EnemyType01" x="571" y="518"/>
+  <object id="14" name="EnemyType01" x="549" y="539"/>
+  <object id="15" name="EnemyType01" x="571" y="542"/>
+  <object id="16" name="EnemyType01" x="110" y="332">
+   <properties>
+    <property name="EnemyIndex" value="1"/>
+   </properties>
+  </object>
+  <object id="17" name="EnemyType01" x="113" y="147">
+   <properties>
+    <property name="EnemyIndex" value="1"/>
+   </properties>
+  </object>
+  <object id="20" name="EnemyType01" x="145" y="116">
+   <properties>
+    <property name="EnemyIndex" value="1"/>
+   </properties>
+  </object>
  </objectgroup>
  <layer name="Foreground" width="20" height="20">
   <data encoding="base64" compression="zlib">
